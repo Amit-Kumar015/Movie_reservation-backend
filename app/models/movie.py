@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, DateTime, Enum
+from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy import relationship
 import uuid
 
 from app.db.database import Base
@@ -13,9 +13,9 @@ class Movie(Base):
     description = Column(String, nullable=True)
     duration = Column(Integer, nullable=False)
     posterUrl = Column(String, nullable=False)
-    genre_id = Column(String, ForeignKey("genres.id"), index=True)
+    genre_id = Column(String, ForeignKey("genres.id"), ondelete="SET NULL", nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
     genre = relationship("Genre", back_populates="movies", passive_deletes=True)
     showtimes = relationship("Showtime", back_populates="movie", passive_deletes=True)
