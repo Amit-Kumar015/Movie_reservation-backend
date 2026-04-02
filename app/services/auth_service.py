@@ -1,15 +1,26 @@
+import logging
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 
 from app.models.user import User
-from app.core.security import hash_password, verify_password, create_accesse_token, decode_token
+from app.core.security import hash_password, verify_password, create_access_token, decode_token
+
+logger = logging.getLogger(__name__)
+
+class UserAlreadyExistsException(Exception):
+  pass
+
+class InvalidCredentialsError(Exception):
+  pass
+
+class InvalidTokenError(Exception):
+  pass
 
 def signup(db: Session, name: str, email: str, password: str):    
     try:  
       existing_user = db.query(User).filter(User.email == email).first()
       if existing_user:
-          raise HTTPException(status_code=400, detail="User already exists")
+          raise UserAlreadyExistsException("Email already registered")
 
       new_user = User(
           name=name, 
@@ -20,54 +31,57 @@ def signup(db: Session, name: str, email: str, password: str):
       db.commit()
       db.refresh(new_user)
 
-      return {"message": "User created successfully"}
-    except HTTPException as e:
-        raise e
-    except SQLAlchemyError:
+      return new_user
+    except UserAlreadyExistsException:
+      raise
+    except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
-    except Exception:
+        logger.error(f"DB error during signup: {e}")
+        raise 
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Unexpected error during signup: {e}")
+        raise
 
 def login(db: Session, email: str, password: str):
     try:
       user = db.query(User).filter(User.email == email).first()
-      if not user:
-          raise HTTPException(status_code=400, detail="Invalid email or password")
-
-      if not verify_password(password, user.password):
-          raise HTTPException(status_code=400, detail="Invalid email or password")
+      if not user or not verify_password(password, user.password):
+          raise InvalidCredentialsError("Invalid email or password")
       
-      token = create_accesse_token({"id": user.id, "name": user.name, "role": user.role})
+      token = create_access_token({"id": user.user_id, "name": user.name, "role": user.role})
 
       return {"access_token": token, "token_type": "bearer"}
     
-    except HTTPException as e:
-      raise e
-    except Exception:
-      raise HTTPException(status_code=500, detail="Internal server error")
+    except InvalidCredentialsError:
+      raise
+    except SQLAlchemyError as e:
+        logger.error(f"DB error during login: {e}")
+        raise
+    except Exception as e:
+      logger.error(f"Unexpected error during login: {e}")
+      raise
 
 def get_current_user(db: Session, token: str):
     try:
       payload = decode_token(token)
-      id = payload.get("id")
-      if not id:
-          raise HTTPException(status_code=401, detail="Invalid token")
+      user_id = payload.get("id")
+      if not user_id:
+          raise InvalidTokenError("Token payload missing user id")
 
-      user = db.query(User).filter(User.id == id).first()
+      user = db.query(User).filter(User.user_id == user_id).first()
       
       if not user:
-          raise HTTPException(status_code=401, detail="Invalid token")
+          raise InvalidTokenError("User no longer exists")
       
-      return {
-          "id": user.id,
-          "name": user.name,
-          "email": user.email,
-          "role": user.role,
-      }
-    except HTTPException as e:
-      raise e 
-    except Exception:
-      raise HTTPException(status_code=500, detail="Internal server error")
+      return user
+    
+    except InvalidTokenError:
+      raise
+    except SQLAlchemyError as e:
+        logger.error(f"DB error during get_current_user: {e}")
+        raise
+    except Exception as e:
+      logger.error(f"Unexpected error during get_current_user: {e}")
+      raise 
 
