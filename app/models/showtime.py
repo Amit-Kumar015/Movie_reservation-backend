@@ -9,12 +9,12 @@ from app.db.database import Base
 class Showtime(Base):
     __tablename__ = "showtimes"
 
-    showtime_id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: uuid.uuid4())
-    movie_id = Column(UUID(as_uuid=True), ForeignKey("movies.movie_id"), ondelete="CASCADE", nullable=False, index=True)
+    showtime_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    movie_id = Column(UUID(as_uuid=True), ForeignKey("movies.movie_id", ondelete="CASCADE"), nullable=False, index=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
     price = Column(Float, nullable=False)
-    screen_id = Column(UUID(as_uuid=True), ForeignKey("screens.screen_id"), ondelete="CASCADE", nullable=False, index=True)
+    screen_id = Column(UUID(as_uuid=True), ForeignKey("screens.screen_id", ondelete="CASCADE"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

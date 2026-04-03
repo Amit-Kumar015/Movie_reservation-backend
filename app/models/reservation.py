@@ -10,9 +10,9 @@ from app.models.enum import ReservationStatus
 class Reservation(Base):
     __tablename__ = "reservations"
 
-    reservation_id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: uuid.uuid4())
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), ondelete="CASCADE", nullable=False, index=True)
-    showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id"), ondelete="CASCADE", nullable=False, index=True)
+    reservation_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id", ondelete="CASCADE"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -9,7 +9,7 @@ from app.db.database import Base
 class Screen(Base):
     __tablename__ = "screens"
 
-    screen_id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: uuid.uuid4())
+    screen_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
     name = Column(String(50), nullable=False)
     venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.venue_id", ondelete="CASCADE"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

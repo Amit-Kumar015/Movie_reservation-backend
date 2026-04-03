@@ -10,10 +10,10 @@ from app.models.enum import ReservationSeatStatus
 class ReservationSeat(Base):
     __tablename__ = "reservation_seats"
 
-    reservation_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: uuid.uuid4())
-    reservation_id = Column(UUID(as_uuid=True), ForeignKey("reservations.reservation_id"), ondelete="CASCADE", nullable=False, index=True)
-    seat_id = Column(UUID(as_uuid=True), ForeignKey("seats.seat_id"), ondelete="CASCADE", nullable=False, index=True)
-    showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id"), ondelete="CASCADE", nullable=False, index=True)
+    reservation_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    reservation_id = Column(UUID(as_uuid=True), ForeignKey("reservations.reservation_id", ondelete="CASCADE"), nullable=False, index=True)
+    seat_id = Column(UUID(as_uuid=True), ForeignKey("seats.seat_id", ondelete="CASCADE"), nullable=False, index=True)
+    showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(Enum(ReservationSeatStatus), nullable=False, default=ReservationSeatStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
