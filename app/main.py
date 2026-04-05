@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.db.database import engine, Base
-from app.api.routes import auth, movie
+from app.api.routes import auth, movie, reservation, seats, showtime
 
 app = FastAPI()
 
@@ -12,3 +12,6 @@ def root():
   
 app.include_router(auth.router)
 app.include_router(movie.router)
+app.include_router(reservation.router)
+app.include_router(seats.router)
+app.include_router(showtime.router)

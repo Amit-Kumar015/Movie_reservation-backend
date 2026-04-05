@@ -30,3 +30,5 @@ def get_movie_by_id_endpoint(movie_id: UUID, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail=str(e))
   except SQLAlchemyError:
     raise HTTPException(status_code=500, detail="Database error")
+  except Exception:
+    raise HTTPException(status_code=500, detail="Internal server error")

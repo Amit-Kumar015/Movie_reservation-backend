@@ -9,7 +9,7 @@ from app.db.database import Base
 class Showtime(Base):
     __tablename__ = "showtimes"
 
-    showtime_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    showtime_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     movie_id = Column(UUID(as_uuid=True), ForeignKey("movies.movie_id", ondelete="CASCADE"), nullable=False, index=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)

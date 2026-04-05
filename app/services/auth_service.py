@@ -16,7 +16,7 @@ class InvalidCredentialsError(Exception):
 class InvalidTokenError(Exception):
   pass
 
-def signup(db: Session, name: str, email: str, password: str):    
+def signup(db: Session, name: str, email: str, password: str) -> User:
     try:  
       existing_user = db.query(User).filter(User.email == email).first()
       if existing_user:
@@ -62,7 +62,7 @@ def login(db: Session, email: str, password: str):
       logger.error(f"Unexpected error during login: {e}")
       raise
 
-def get_current_user(db: Session, token: str):
+def get_current_user(db: Session, token: str) -> User:
     try:
       payload = decode_token(token)
       user_id = payload.get("id")

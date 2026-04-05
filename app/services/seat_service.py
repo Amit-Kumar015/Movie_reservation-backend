@@ -30,6 +30,8 @@ def get_seats_by_showtime_id(db: Session, showtime_id: UUID) -> list[Seat]:
       }
       for seat in seats
     ]
+  except SeatNotFoundError:
+    raise
   except SQLAlchemyError as e:
     logger.error(f"Error occurred while fetching seats for showtime {showtime_id}: {e}")
     raise

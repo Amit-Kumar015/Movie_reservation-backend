@@ -9,7 +9,7 @@ from app.db.database import Base
 class Seat(Base):
     __tablename__ = "seats"
 
-    seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     screen_id = Column(UUID(as_uuid=True), ForeignKey("screens.screen_id", ondelete="CASCADE"), nullable=False, index=True)
     row = Column(String, nullable=False)
     col = Column(String, nullable=False)

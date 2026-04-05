@@ -10,7 +10,7 @@ from app.models.enum import ReservationSeatStatus
 class ReservationSeat(Base):
     __tablename__ = "reservation_seats"
 
-    reservation_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    reservation_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     reservation_id = Column(UUID(as_uuid=True), ForeignKey("reservations.reservation_id", ondelete="CASCADE"), nullable=False, index=True)
     seat_id = Column(UUID(as_uuid=True), ForeignKey("seats.seat_id", ondelete="CASCADE"), nullable=False, index=True)
     showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id", ondelete="CASCADE"), nullable=False, index=True)
@@ -20,7 +20,7 @@ class ReservationSeat(Base):
 
     reservation = relationship("Reservation", back_populates="reservation_seats", passive_deletes=True)
     seat = relationship("Seat", back_populates="reservation_seats", passive_deletes=True)
-    showtimes = relationship("Showtime", back_populates="reservation_seats", passive_deletes=True)
+    showtime = relationship("Showtime", back_populates="reservation_seats", passive_deletes=True)
 
     __table_args__ = (
         UniqueConstraint("seat_id", "showtime_id", name="uq_reservation_seat_seat_showtime"),

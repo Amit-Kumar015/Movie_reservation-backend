@@ -60,6 +60,8 @@ def get_movie_by_id(db: Session, movie_id: UUID) -> Movie:
     if not movie:
       raise MovieNotFoundError(f"Movie with ID {movie_id} not found")
     return movie
+  except MovieNotFoundError:
+    raise
   except SQLAlchemyError as e:
     logger.error("Database error occurred while fetching movie by ID: %s", str(e))
     raise

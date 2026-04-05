@@ -20,6 +20,8 @@ def get_showtimes_by_movie_endpoint(movie_id: UUID, date: Optional[datetime] = Q
     raise HTTPException(status_code=404, detail=str(e))
   except SQLAlchemyError:
     raise HTTPException(status_code=500, detail="Database error")
+  except Exception:
+    raise HTTPException(status_code=500, detail="Internal server error")
   
 @router.get('/{showtime_id}', response_model=ShowtimeResponse)
 def get_showtime_by_id_endpoint(showtime_id: UUID, db : Session = Depends(get_db)):
@@ -29,3 +31,5 @@ def get_showtime_by_id_endpoint(showtime_id: UUID, db : Session = Depends(get_db
     raise HTTPException(status_code=404, detail=str(e))
   except SQLAlchemyError:
     raise HTTPException(status_code=500, detail="Database error")
+  except Exception:
+    raise HTTPException(status_code=500, detail="Internal server error")

@@ -23,6 +23,8 @@ def get_showtimes_by_movie(db: Session, movie_id: UUID, date: datetime | None = 
     if not showtimes:
       raise ShowtimeNotFoundError(f"No showtimes found for movie {movie_id}")
     return showtimes
+  except ShowtimeNotFoundError:
+    raise
   except SQLAlchemyError as e:
     logger.error("Database error occurred while fetching showtime by ID: %s", str(e))
     raise
@@ -36,6 +38,8 @@ def get_showtime_by_id(db: Session, showtime_id: UUID) -> Showtime:
     if not showtime:
       raise ShowtimeNotFoundError(f"Showtime with ID {showtime_id} not found")
     return showtime
+  except ShowtimeNotFoundError:
+    raise
   except SQLAlchemyError as e:
     logger.error("Database error occurred while fetching showtime by ID: %s", str(e))
     raise

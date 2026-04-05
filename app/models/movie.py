@@ -9,7 +9,7 @@ from app.db.database import Base
 class Movie(Base):
     __tablename__ = "movies"
 
-    movie_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4())
+    movie_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String, nullable=False, index=True)
     description = Column(String(300), nullable=True)
     duration = Column(Integer, nullable=False)
