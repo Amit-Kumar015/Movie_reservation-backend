@@ -66,6 +66,16 @@ def create_reservation(db: Session, user_id: UUID, showtime_id: UUID, seat_ids: 
     db.rollback()
     logger.error(f"Unexpected error during reservation creation: {e}")
     raise
+
+def get_all_reservations(db: Session) -> list[Reservation]:
+  try:
+    return db.query(Reservation).options(joinedload(Reservation.reservation_seats)).all()
+  except SQLAlchemyError as e:
+    logger.error(f"DB error during fetching all reservations: {e}")
+    raise
+  except Exception as e:
+    logger.error(f"Unexpected error during fetching all reservations: {e}")
+    raise
   
 def get_all_reservations_by_user(db: Session, user_id: UUID) -> list[Reservation]:
   try:

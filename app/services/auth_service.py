@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -49,7 +50,11 @@ def login(db: Session, email: str, password: str):
       if not user or not verify_password(password, user.password):
           raise InvalidCredentialsError("Invalid email or password")
       
-      token = create_access_token({"id": user.user_id, "name": user.name, "role": user.role})
+      token = create_access_token({
+        "id": str(user.user_id),
+        "name": user.name,
+        "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+      })
 
       return {"access_token": token, "token_type": "bearer"}
     
@@ -68,6 +73,11 @@ def get_current_user(db: Session, token: str) -> User:
       user_id = payload.get("id")
       if not user_id:
           raise InvalidTokenError("Token payload missing user id")
+
+      try:
+        user_id = UUID(str(user_id))
+      except (TypeError, ValueError):
+        raise InvalidTokenError("Invalid user id in token")
 
       user = db.query(User).filter(User.user_id == user_id).first()
       

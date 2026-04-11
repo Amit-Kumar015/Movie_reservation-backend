@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.schemas.reservation import ReservationRequest, ReservationResponse, ReservationListResponse
-from app.services.reservation import cancel_reservation, create_reservation, ReservationNotFoundError, SeatNotAvailableError, ShowtimeNotFoundError, get_all_reservations_by_user, get_reservation_by_id, ReservationError
-from app.api.deps import get_authenticated_user, get_db
+from app.services.reservation import cancel_reservation, create_reservation, ReservationNotFoundError, SeatNotAvailableError, ShowtimeNotFoundError, get_all_reservations, get_all_reservations_by_user, get_reservation_by_id, ReservationError
+from app.api.deps import get_admin_user, get_authenticated_user, get_db
 from app.models.user import User
 
 router = APIRouter(prefix='/reservations', tags=['Reservations'])
@@ -34,10 +34,20 @@ def get_users_reservations(db: Session = Depends(get_db), current_user: User = D
   except Exception:
     raise HTTPException(status_code=500, detail="Internal server error")
   
+@router.get('/', response_model=ReservationListResponse)
+def get_all_reservations_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+  try:
+    reservations = get_all_reservations(db)
+    return ReservationListResponse(reservations=reservations)
+  except SQLAlchemyError:
+    raise HTTPException(status_code=500, detail="Database error occurred")
+  except Exception:
+    raise HTTPException(status_code=500, detail="Internal server error")
+  
 @router.get('/{reservation_id}', response_model=ReservationResponse)
 def reservation_by_id(reservation_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_authenticated_user)):
   try:
-    reservation = get_reservation_by_id(db, reservation_id, current_user.user_id)
+    reservation = get_reservation_by_id(db, reservation_id, current_user.user_id, current_user.role == "ADMIN")
     return reservation
   except ReservationNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))

@@ -1,11 +1,10 @@
 from pydantic import BaseModel, EmailStr, Field
 from enum import Enum
-
-from sqlalchemy import UUID
+from uuid import UUID
 
 class UserRole(str, Enum):
-    USER = "user"
-    ADMIN = "admin"
+    USER = "USER"
+    ADMIN = "ADMIN"
 
 class SignUpRequest(BaseModel):
     name: str = Field(min_length=2, max_length=50)

@@ -11,7 +11,8 @@ ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 SECRET_KEY=os.getenv("SECRET_KEY")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use PBKDF2 to avoid bcrypt's 72-byte input limit and backend compatibility issues.
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def hash_password(password: str):
     return pwd_context.hash(password)
