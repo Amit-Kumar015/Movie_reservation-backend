@@ -11,10 +11,12 @@ from app.models.user import User
 router = APIRouter(prefix='/reservations', tags=['Reservations'])
 
 @router.post('/', response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
-def make_reservation(request: ReservationRequest, db: Session = Depends(get_db), current_user: User = Depends(get_authenticated_user)):
+def make_reservation(request: ReservationRequest, db: Session = Depends(get_db), session_token: str = None, current_user: User = Depends(get_authenticated_user)):
   try:
-    reservation = create_reservation(db, current_user.user_id, request.showtime_id, request.seat_ids)
+    reservation = create_reservation(db, current_user.user_id, request.showtime_id, request.seat_ids, session_token)
     return reservation
+  except ReservationError as e:
+    raise HTTPException(status_code=400, detail=str(e))
   except SeatNotAvailableError as e:
     raise HTTPException(status_code=409, detail=str(e))
   except ShowtimeNotFoundError as e:

@@ -7,7 +7,8 @@ from app.models.enum import ReservationSeatStatus, ReservationStatus
 from app.models.reservation import Reservation
 from app.models.reservation_seat import ReservationSeat
 from app.models.showtime import Showtime
-from app.models.screen import Screen
+from app.services.queue_service import QueueService
+from app.workers.tasks import expire_reservation_timeout
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +24,12 @@ class ShowtimeNotFoundError(Exception):
 class ReservationNotFoundError(Exception):
     pass
 
-def create_reservation(db: Session, user_id: UUID, showtime_id: UUID, seat_ids: list[UUID]) -> Reservation:
+def create_reservation(db: Session, user_id: UUID, showtime_id: UUID, seat_ids: list[UUID], session_token: str) -> Reservation:
   try:
-    showtime = db.query(Showtime).options(joinedload(Showtime.screen).joinedload(Screen.seats), joinedload(Showtime.reservation_seats)).filter(Showtime.showtime_id == showtime_id).first()
+    if not QueueService.verify_session_token(str(showtime_id), str(user_id), session_token):
+      raise ReservationError("Your booking session has expired or is invalid. Please rejoin the queue.")
+    
+    showtime = db.query(Showtime).options(joinedload(Showtime.reservation_seats)).filter(Showtime.showtime_id == showtime_id).with_for_update().first()
     if not showtime:
         raise ShowtimeNotFoundError("Showtime not found")
     
@@ -40,19 +44,21 @@ def create_reservation(db: Session, user_id: UUID, showtime_id: UUID, seat_ids: 
         raise SeatNotAvailableError(f"Seats not available: {unavailable_seats}")
       
     total_price = showtime.price * len(seat_ids)
-    
-    reservation = Reservation(user_id=user_id, showtime_id=showtime_id, total_price=total_price)
+
+    reservation = Reservation(user_id=user_id, showtime_id=showtime_id, total_price=total_price, status=ReservationStatus.PENDING)
     db.add(reservation)
     db.flush()
     
     for seat_id in seat_ids:
-      reservation_seat = ReservationSeat(reservation_id = reservation.reservation_id, seat_id = seat_id, showtime_id = showtime_id, status=ReservationSeatStatus.CONFIRMED)
+      reservation_seat = ReservationSeat(reservation_id = reservation.reservation_id, seat_id = seat_id, showtime_id = showtime_id, status=ReservationSeatStatus.PENDING)
       db.add(reservation_seat)
       
     db.commit()
     db.refresh(reservation)
+    
+    expire_reservation_timeout.apply_async(args=[str(reservation.reservation_id)], countdown=600)
     return reservation
-  except (ShowtimeNotFoundError, SeatNotAvailableError) as e:
+  except (ShowtimeNotFoundError, SeatNotAvailableError, ReservationError) as e:
     raise
   except IntegrityError as e:
     db.rollback()
