@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from app.models.showtime import Showtime
 from app.models.screen import Screen
+from app.services.cache_service import CacheService
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,11 @@ class ShowtimeNotFoundError(Exception):
 
 def get_showtimes_by_movie(db: Session, movie_id: UUID, date: datetime | None = None) -> list[Showtime]:
   try:
+    cache_key = f"showtimes:movie:{movie_id}"
+    cached_data = CacheService.get(cache_key)
+    if cached_data:
+      return cached_data
+    
     showtimes = db.query(Showtime).options(joinedload(Showtime.screen).joinedload(Screen.seats), joinedload(Showtime.reservation_seats)).filter(Showtime.movie_id == movie_id)
     if date:
       start_of_day = date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -22,6 +28,8 @@ def get_showtimes_by_movie(db: Session, movie_id: UUID, date: datetime | None = 
     showtimes = showtimes.order_by(Showtime.start_time.asc()).all()
     if not showtimes:
       raise ShowtimeNotFoundError(f"No showtimes found for movie {movie_id}")
+    
+    CacheService.set(cache_key, showtimes)
     return showtimes
   except ShowtimeNotFoundError:
     raise
@@ -34,9 +42,16 @@ def get_showtimes_by_movie(db: Session, movie_id: UUID, date: datetime | None = 
   
 def get_showtime_by_id(db: Session, showtime_id: UUID) -> Showtime:
   try:
+    cache_key = f"showtime:{showtime_id}"
+    cached_showtime = CacheService.get(cache_key)
+    if cached_showtime:
+      return cached_showtime
+
     showtime = db.query(Showtime).options(joinedload(Showtime.screen).joinedload(Screen.seats), joinedload(Showtime.reservation_seats)).filter(Showtime.showtime_id == showtime_id).first()
     if not showtime:
       raise ShowtimeNotFoundError(f"Showtime with ID {showtime_id} not found")
+    
+    CacheService.set(cache_key, showtime)
     return showtime
   except ShowtimeNotFoundError:
     raise
