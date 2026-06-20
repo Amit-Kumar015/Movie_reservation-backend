@@ -7,6 +7,7 @@ from app.api.deps import get_db
 from app.models.enum import ReservationSeatStatus, ReservationStatus
 from app.models.reservation import Reservation
 from app.models.reservation_seat import ReservationSeat
+from app.workers import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,10 @@ def payment_webhook(payload: dict, db: Session = Depends(get_db)):
       return {"status": "error", "message": "Reservation expired. Processing autonomous customer refund."}
 
     if reservation and reservation.status == ReservationStatus.PENDING:
+      if reservation.celery_task_id:
+        celery_app.control.revoke(reservation.celery_task_id, terminate=True)
+        print(f"[INFO] Successfully revoked expiration task: {reservation.celery_task_id}")
+            
       reservation.status = ReservationStatus.CONFIRMED
       
       seats = db.query(ReservationSeat).filter(ReservationSeat.reservation_id == reservation_id).with_for_update().all()
@@ -40,7 +45,7 @@ def payment_webhook(payload: dict, db: Session = Depends(get_db)):
 
       db.commit()
       logger.info(f"Payment verification successful. Booking {reservation_id} finalized permanently.")
-      return {"status": "Success, booking secured permanently!"}
+      return {"status": "Success", "message": "Reservation confirmed!"}
 
     return {"status": "ignored", "message": f"Reservation already processed with status: {reservation.status}"}
   except ValueError:

@@ -2,6 +2,7 @@ import logging
 from sqlalchemy.orm import Session, joinedload
 from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import DBAPIError, OperationalError
 
 from app.models.enum import ReservationSeatStatus, ReservationStatus
 from app.models.reservation import Reservation
@@ -56,10 +57,15 @@ def create_reservation(db: Session, user_id: UUID, showtime_id: UUID, seat_ids: 
     db.commit()
     db.refresh(reservation)
     
-    expire_reservation_timeout.apply_async(args=[str(reservation.reservation_id)], countdown=600)
+    task = expire_reservation_timeout.apply_async(args=[str(reservation.reservation_id)], countdown=600)
+    reservation.celery_task_id = task.id
     return reservation
   except (ShowtimeNotFoundError, SeatNotAvailableError, ReservationError) as e:
     raise
+  except (OperationalError, DBAPIError) as e:
+    db.rollback()
+    logger.warning(f"Concurrency lock triggered or database collision: {e}")
+    raise SeatNotAvailableError("The selected seats are currently being locked or processed by another transaction.")
   except IntegrityError as e:
     db.rollback()
     logger.error("Double booking attempt for showtime %s", showtime_id)
