@@ -10,7 +10,7 @@ from app.schemas.admin.movie import CreateMovieRequest, UpdateMovieRequest, Movi
 
 router = APIRouter(prefix="/admin/movies", tags=["Admin Movies"])
 
-@router.post('/', response_model=MovieResponse)
+@router.post('', response_model=MovieResponse)
 def create_movie_endpoint(request: CreateMovieRequest, db: Session = Depends(get_db)):
   try:
     movie = create_movie(db, request.title, request.description, request.duration, request.poster_url, request.genre_id)

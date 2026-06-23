@@ -9,7 +9,7 @@ from app.schemas.admin.genre import CreateGenreRequest, GenreResponse
 
 router = APIRouter(prefix="/admin/genres", tags=["Admin Genres"])
 
-@router.post('/', response_model=GenreResponse)
+@router.post('', response_model=GenreResponse)
 def create_genre_endpoint(request: CreateGenreRequest, db: Session = Depends(get_db)):
   try:
     genre = create_genre(db, request.genre_type)

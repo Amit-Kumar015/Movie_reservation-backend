@@ -1,6 +1,6 @@
 from uuid import UUID
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import Any, Optional
 from datetime import datetime
 
 class SearchMovieRequest(BaseModel):
@@ -20,6 +20,16 @@ class MovieResponse(BaseModel):
   
   class Config:
     from_attributes = True
+    
+  @field_validator("genre", mode="before")
+  @classmethod
+  def serialize_genre_object(cls, value: Any) -> Optional[str]:
+      if value is None:
+          return None
+        
+      if hasattr(value, "name"):
+          return value.name
+      return str(value)
   
   
 class PaginatedMovieResponse(BaseModel):

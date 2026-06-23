@@ -9,7 +9,7 @@ from app.schemas.admin.seat import CreateSeatRequest, SeatResponse
 
 router = APIRouter(prefix="/admin/seats", tags=["Admin Seats"])
 
-@router.post('/', response_model=list[SeatResponse])
+@router.post('', response_model=list[SeatResponse])
 def create_seats_for_screen_endpoint(request: CreateSeatRequest, db: Session = Depends(get_db)):
   try:
     seats = create_seats_for_screen(db, request.screen_id, request.row, request.col)

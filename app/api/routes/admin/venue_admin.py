@@ -9,7 +9,7 @@ from app.schemas.admin.venue import CreateVenueRequest, UpdateVenueRequest, Venu
 
 router = APIRouter(prefix='/admin/venues', tags=['Admin Venues'])
 
-@router.post('/', response_model=VenueResponse)
+@router.post('', response_model=VenueResponse)
 def create_venue_endpoint(request: CreateVenueRequest, db: Session = Depends(get_db)):
   try:
     venue = create_venue(db, request.name, request.location)

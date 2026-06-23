@@ -10,7 +10,7 @@ from app.models.user import User
 
 router = APIRouter(prefix='/reservations', tags=['Reservations'])
 
-@router.post('/', response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
+@router.post('', response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
 def make_reservation(request: ReservationRequest, db: Session = Depends(get_db), session_token: str = None, current_user: User = Depends(get_authenticated_user)):
   try:
     reservation = create_reservation(db, current_user.user_id, request.showtime_id, request.seat_ids, session_token)
@@ -36,7 +36,7 @@ def get_users_reservations(db: Session = Depends(get_db), current_user: User = D
   except Exception:
     raise HTTPException(status_code=500, detail="Internal server error")
   
-@router.get('/', response_model=ReservationListResponse)
+@router.get('', response_model=ReservationListResponse)
 def get_all_reservations_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
   try:
     reservations = get_all_reservations(db)

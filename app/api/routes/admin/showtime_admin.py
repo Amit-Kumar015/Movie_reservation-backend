@@ -9,7 +9,7 @@ from app.schemas.admin.showtime import CreateShowtimeRequest, ShowtimeResponse
 
 router = APIRouter(prefix="/admin/showtimes", tags=["Admin Showtimes"])
 
-@router.post('/', response_model=ShowtimeResponse)
+@router.post('', response_model=ShowtimeResponse)
 def create_showtime_endpoint(request: CreateShowtimeRequest, db: Session = Depends(get_db)):
   try:
     showtime = create_showtime(db, request.screen_id, request.movie_id, request.start_time, request.price)

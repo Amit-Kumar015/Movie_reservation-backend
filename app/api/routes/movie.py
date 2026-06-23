@@ -10,7 +10,7 @@ from app.schemas.movie import MovieResponse, PaginatedMovieResponse
 
 router = APIRouter(prefix="/movies", tags=["Movies"])
 
-@router.get('/', response_model=PaginatedMovieResponse)
+@router.get('', response_model=PaginatedMovieResponse)
 def get_movies_endpoint(page: int = Query(default=1, ge=1), page_size: int = Query(default=10), db: Session = Depends(get_db)):
     return get_movies(db, page, page_size)
 

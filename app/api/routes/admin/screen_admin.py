@@ -9,7 +9,7 @@ from app.schemas.admin.screen import ScreenCreateRequest, ScreenCreateResponse, 
 
 router = APIRouter(prefix="/admin/screens", tags=["Admin Screens"])
 
-@router.post('/', response_model=ScreenCreateResponse)
+@router.post('', response_model=ScreenCreateResponse)
 def create_screen_endpoint(request: ScreenCreateRequest, db: Session = Depends(get_db)):
   try:
     return create_screen(db, request.name, request.venue_id, request.row, request.col)
