@@ -11,7 +11,7 @@ class ReservationSeat(Base):
     __tablename__ = "reservation_seats"
 
     reservation_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    reservation_id = Column(UUID(as_uuid=True), ForeignKey("reservations.reservation_id", ondelete="CASCADE"), nullable=False, index=True)
+    reservation_id = Column(UUID(as_uuid=True), ForeignKey("reservations.reservation_id", ondelete="SET NULL"), nullable=True, index=True)
     seat_id = Column(UUID(as_uuid=True), ForeignKey("seats.seat_id", ondelete="CASCADE"), nullable=False, index=True)
     showtime_id = Column(UUID(as_uuid=True), ForeignKey("showtimes.showtime_id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(Enum(ReservationSeatStatus), nullable=False, default=ReservationSeatStatus.PENDING)

@@ -4,9 +4,12 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.models.reservation_seat import ReservationSeat
 from app.models.showtime import Showtime
 from app.models.movie import Movie
 from app.models.screen import Screen
+from app.models.seat import Seats
+from app.models.enum import ReservationSeatStatus
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,14 @@ def create_showtime(db: Session, screen_id: UUID, movie_id: UUID, start_time: da
     db.add(new_showtime)
     db.commit()
     db.refresh(new_showtime)
+    
+    screen_seats = db.query(Seats).filter(Seats.screen_id == screen_id).all()
+    
+    for seat in screen_seats:
+      res_seat = ReservationSeat(seat_id=seat.seat_id, showtime_id=new_showtime.showtime_id, status=ReservationSeatStatus.AVAILABLE)
+      db.add(res_seat)
+    db.commit()
+    
     return new_showtime
   except MovieNotFoundError:
     raise
