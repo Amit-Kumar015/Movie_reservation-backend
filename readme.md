@@ -6,12 +6,29 @@ A robust, production-grade backend engine designed to handle high-volume ticket 
 
 ## 🏛️ System Architecture
 
-```mermaid
-flowchart TD
-    A[Incoming Client Traffic] --> B[FastAPI Server]
-    B --> C[Redis Waiting Room]
-    B --> D[PostgreSQL]
-    D --> E[Celery Worker]
+```text
+                           ┌────────────────────────────────┐
+                           │     Incoming Client Traffic    │
+                           └────────────────┬───────────────┘
+                                            │
+                                            ▼
+                           ┌────────────────────────────────┐
+                           │         FastAPI Server         │
+                           └────────────────┬───────────────┘
+                                            │
+                  ┌─────────────────────────┴────────────────────────┐
+                  │                                                  │
+                  ▼                                                  ▼
+ ┌──────────────────────────────────┐               ┌──────────────────────────────────┐
+ │    Redis Virtual Waiting Room    │               │ PostgreSQL (Pessimistic Locking) │
+ │     (Sorted Sets Queue Gate)     │               │  SELECT ... FOR UPDATE Row Lock  │
+ └──────────────────────────────────┘               └────────────────┬─────────────────┘
+                                                                     │
+                                                                     ▼
+                                                    ┌──────────────────────────────────┐
+                                                    │      Celery Worker Process       │
+                                                    │  (10-Min Auto-Hold Expiration)   │
+                                                    └──────────────────────────────────┘
 ```
 
 ---
