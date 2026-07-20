@@ -7,21 +7,11 @@ A robust, production-grade backend engine designed to handle high-volume ticket 
 ## 🏛️ System Architecture
 
 ```mermaid
-flowchart TB
-    Client["🌐 Incoming Client Traffic"]
-
-    API["⚡ FastAPI Server"]
-
-    Redis["🔴 Redis<br/>Virtual Waiting Room<br/>(Sorted Sets Queue Gate)"]
-
-    DB["🐘 PostgreSQL<br/>Pessimistic Locking<br/>SELECT ... FOR UPDATE"]
-
-    Worker["⚙️ Celery Worker<br/>10-Min Auto-Hold Expiration"]
-
-    Client --> API
-    API --> Redis
-    API --> DB
-    DB --> Worker
+flowchart TD
+    A[Incoming Client Traffic] --> B[FastAPI Server]
+    B --> C[Redis Waiting Room]
+    B --> D[PostgreSQL]
+    D --> E[Celery Worker]
 ```
 
 ---
